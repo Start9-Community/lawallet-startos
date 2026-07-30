@@ -1,43 +1,40 @@
+import { i18n } from './i18n'
 import { sdk } from './sdk'
-import { uiPort, pgUser, pgDatabase, pgPort, generateSecret } from './utils'
 import { storeJson } from './fileModels/store.json'
+import { listenerPort, pgDatabase, pgPort, pgUser, uiPort } from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
   /**
    * ======================== Setup ========================
-   *
-   * Ensure the persistent secrets exist. Normally written on install
-   * (init/generateSecrets.ts); this is a safety net for any other lifecycle.
    */
-  if (!(await storeJson.read().once())) {
-    await storeJson.write(effects, {
-      jwtSecret: generateSecret(32),
-      postgresPassword: generateSecret(24),
-    })
-  }
-  const secrets = await storeJson.read().const(effects)
-  if (!secrets) {
+  const store = await storeJson.read().const(effects)
+  if (
+    !store?.postgresPassword ||
+    !store.jwtSecret ||
+    !store.keyVaultSecret ||
+    !store.listenerAuthSecret
+  ) {
     throw new Error('LaWallet NWC secrets are missing from store.json')
   }
 
-  const databaseUrl = `postgresql://${pgUser}:${secrets.postgresPassword}@127.0.0.1:${pgPort}/${pgDatabase}`
+  const databaseUrl = `postgresql://${pgUser}:${store.postgresPassword}@127.0.0.1:${pgPort}/${pgDatabase}`
 
   /**
    * ======================== Subcontainers ========================
    */
-  const postgres = await sdk.SubContainer.of(
+  const postgres = sdk.SubContainer.of(
     effects,
     { imageId: 'postgres' },
     sdk.Mounts.of().mountVolume({
-      volumeId: 'main',
-      subpath: 'postgresql',
+      volumeId: 'db',
+      subpath: null,
       mountpoint: '/var/lib/postgresql',
       readonly: false,
     }),
-    'postgres',
+    'postgres-sub',
   )
 
-  const web = await sdk.SubContainer.of(
+  const web = sdk.SubContainer.of(
     effects,
     { imageId: 'web' },
     sdk.Mounts.of().mountVolume({
@@ -46,72 +43,120 @@ export const main = sdk.setupMain(async ({ effects }) => {
       mountpoint: '/app/data',
       readonly: false,
     }),
-    'web',
+    'web-sub',
+  )
+
+  const listener = sdk.SubContainer.of(
+    effects,
+    { imageId: 'listener' },
+    sdk.Mounts.of(),
+    'listener-sub',
   )
 
   /**
    * ======================== Daemons ========================
    *
-   * Postgres starts first (localhost only); the web app waits for it, then runs
-   * the image's own startup (`prisma migrate deploy && node server.js`).
+   * Postgres comes up first on loopback only. The web app then runs the
+   * image's `prisma migrate deploy && node server.js`, which owns the schema
+   * both it and the listener read. The listener waits for that migration to
+   * land before opening its relay connections.
    */
   return sdk.Daemons.of(effects)
     .addDaemon('postgres', {
       subcontainer: postgres,
       exec: {
-        // Mirrors the postgres image entrypoint, bound to localhost only.
-        command: [
-          'docker-entrypoint.sh',
-          'postgres',
-          '-c',
-          'listen_addresses=127.0.0.1',
-        ],
+        command: sdk.useEntrypoint(['-c', 'listen_addresses=127.0.0.1']),
         env: {
           POSTGRES_USER: pgUser,
           POSTGRES_DB: pgDatabase,
-          POSTGRES_PASSWORD: secrets.postgresPassword,
+          POSTGRES_PASSWORD: store.postgresPassword,
         },
       },
       ready: {
-        // Internal sidecar — hidden from the StartOS UI.
         display: null,
-        fn: () =>
-          sdk.healthCheck.runHealthScript(
-            ['pg_isready', '-h', '127.0.0.1', '-U', pgUser, '-d', pgDatabase],
-            postgres,
-            {
-              message: () => 'PostgreSQL is ready',
-              errorMessage: 'PostgreSQL is starting',
-            },
-          ),
+        fn: async () => {
+          const { exitCode } = await postgres.exec([
+            'pg_isready',
+            '-h',
+            '127.0.0.1',
+            '-U',
+            pgUser,
+            '-d',
+            pgDatabase,
+          ])
+          return exitCode === 0
+            ? { result: 'success', message: i18n('PostgreSQL is ready') }
+            : {
+                result: 'loading',
+                message: i18n('Waiting for PostgreSQL to be ready'),
+              }
+        },
+      },
+      requires: [],
+    })
+    .addOneshot('chown-data', {
+      subcontainer: web,
+      exec: {
+        command: ['chown', '-R', 'nextjs:nodejs', '/app/data'],
+        user: 'root',
       },
       requires: [],
     })
     .addDaemon('web', {
       subcontainer: web,
       exec: {
-        // Mirrors the lawallet-nwc image CMD.
-        command: ['sh', '-c', 'prisma migrate deploy && node server.js'],
+        command: sdk.useEntrypoint(),
         env: {
           DATABASE_URL: databaseUrl,
-          JWT_SECRET: secrets.jwtSecret,
+          JWT_SECRET: store.jwtSecret,
+          KEY_VAULT_SECRET: store.keyVaultSecret,
+          LISTENER_URL: `http://127.0.0.1:${listenerPort}`,
+          LISTENER_AUTH_SECRET: store.listenerAuthSecret,
           NODE_ENV: 'production',
           PORT: String(uiPort),
           HOSTNAME: '0.0.0.0',
         },
       },
       ready: {
-        display: 'Web Interface',
+        display: i18n('Web Interface'),
+        gracePeriod: 60000,
         fn: () =>
           sdk.healthCheck.checkWebUrl(
             effects,
             `http://127.0.0.1:${uiPort}/api/health`,
             {
-              successMessage: 'The LaWallet NWC web interface is ready',
-              errorMessage: 'The web interface is not reachable',
+              successMessage: i18n('The web interface is ready'),
+              errorMessage: i18n('The web interface is not reachable'),
             },
           ),
       },
-      requires: ['postgres'],
+      requires: ['postgres', 'chown-data'],
+    })
+    .addDaemon('listener', {
+      subcontainer: listener,
+      exec: {
+        command: sdk.useEntrypoint(),
+        env: {
+          DATABASE_URL: databaseUrl,
+          LISTENER_PORT: String(listenerPort),
+          LISTENER_AUTH_SECRET: store.listenerAuthSecret,
+          WEB_ORIGIN: `http://127.0.0.1:${uiPort}`,
+          NODE_ENV: 'production',
+        },
+      },
+      ready: {
+        display: i18n('Payment Listener'),
+        gracePeriod: 30000,
+        fn: () =>
+          sdk.healthCheck.checkWebUrl(
+            effects,
+            `http://127.0.0.1:${listenerPort}/health`,
+            {
+              successMessage: i18n('The payment listener is connected'),
+              errorMessage: i18n('The payment listener is not reachable'),
+            },
+          ),
+      },
+      requires: ['web'],
     })
 })
