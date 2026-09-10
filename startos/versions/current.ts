@@ -1,18 +1,18 @@
 import { IMPOSSIBLE, VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '2.0.0:1',
+  version: '2.6.0:1',
   releaseNotes: {
     en_US:
-      'First community-registry release. Adds the NWC payment listener, encrypted storage for passkey accounts, and database-dump backups.',
+      'LaWallet NWC 2.6.0. Pins both published images to 2.6.0 and generates the NWC vault key plus a dedicated listener request secret required since 2.1. Existing 2.0.0:1 secrets are left unchanged on upgrade.',
     es_ES:
-      'Primera versión para el registro comunitario. Añade el escucha de pagos NWC, almacenamiento cifrado para cuentas con passkey y copias de seguridad por volcado de la base de datos.',
+      'LaWallet NWC 2.6.0. Pins both published images to 2.6.0 and generates the NWC vault and listener request secrets required since 2.1. Existing 2.0.0:1 secrets are left unchanged on upgrade.',
     de_DE:
-      'Erste Veröffentlichung für die Community-Registry. Ergänzt den NWC-Zahlungslauscher, verschlüsselte Speicherung für Passkey-Konten und Sicherungen per Datenbank-Dump.',
+      'LaWallet NWC 2.6.0. Pins both published images to 2.6.0 and generates the NWC vault and listener request secrets required since 2.1. Existing 2.0.0:1 secrets are left unchanged on upgrade.',
     pl_PL:
-      'Pierwsze wydanie w rejestrze społecznościowym. Dodaje nasłuch płatności NWC, szyfrowane przechowywanie kont z passkey oraz kopie zapasowe w postaci zrzutu bazy danych.',
+      'LaWallet NWC 2.6.0. Pins both published images to 2.6.0 and generates the NWC vault and listener request secrets required since 2.1. Existing 2.0.0:1 secrets are left unchanged on upgrade.',
     fr_FR:
-      'Première version pour le registre communautaire. Ajoute l’écouteur de paiements NWC, le stockage chiffré des comptes passkey et des sauvegardes par vidage de la base de données.',
+      'LaWallet NWC 2.6.0. Pins both published images to 2.6.0 and generates the NWC vault and listener request secrets required since 2.1. Existing 2.0.0:1 secrets are left unchanged on upgrade.',
   },
   migrations: {
     up: async ({ effects }) => {},
