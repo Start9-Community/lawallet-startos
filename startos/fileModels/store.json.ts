@@ -1,11 +1,6 @@
 import { FileHelper, z } from '@start9labs/start-sdk'
 import { sdk } from '../sdk'
 
-/**
- * Package-managed secrets, persisted on the `main` volume so they stay stable
- * across restarts, updates, and restores. Generated once on install
- * (see init/generateSecrets.ts) and read by main.ts.
- */
 export const storeJson = FileHelper.json(
   { base: sdk.volumes.main, subpath: 'store.json' },
   z.object({
@@ -13,5 +8,7 @@ export const storeJson = FileHelper.json(
     jwtSecret: z.string().optional().catch(undefined),
     keyVaultSecret: z.string().optional().catch(undefined),
     listenerAuthSecret: z.string().optional().catch(undefined),
+    listenerRequestAuthSecret: z.string().optional().catch(undefined),
+    nwcVaultSecret: z.string().optional().catch(undefined),
   }),
 )
