@@ -15,9 +15,10 @@ straight away, before exposing the service to anyone else.
 - **A bundled database and payment listener.** The listener holds open the Nostr
   relay connections your NWC wallets need, so incoming payments are noticed as
   they happen. Nothing external to sign up for or configure.
-- **Secrets managed for you.** The signing keys, the database password, and the
-  key that encrypts server-custodied Nostr keys are generated on install and
-  included in your StartOS backups.
+- **Secrets managed for you.** The signing keys, the database password, the
+  key that encrypts server-custodied Nostr keys, and the NWC vault key that
+  encrypts connected wallets are generated on install and included in your
+  StartOS backups.
 
 ## Getting set up
 
@@ -30,7 +31,10 @@ straight away, before exposing the service to anyone else.
    checks whether the domain reaches this instance and shows you what to change
    if it doesn't.
 4. Create lightning addresses under **Addresses**, and connect a wallet under
-   **Remote Wallets** to receive payments.
+   **Remote Wallets** to receive payments. Configure the NIP-57 receipt signer
+   `nsec` in **Settings → NWC Services** if you want zap receipts; it is
+   encrypted with the generated NWC vault key and is not a StartOS
+   environment variable.
 
 ## Using LaWallet NWC
 
@@ -67,6 +71,7 @@ diagnosing a wallet that has stopped reporting payments.
   encrypted with a key generated at install and stored in your backups. If you
   lose both the server and its backups, those keys are unrecoverable and the
   affected users lose their Nostr identity. Users who export their key are
-  unaffected.
+  unaffected. The same is true of connected NWC wallets: losing the NWC vault
+  key makes stored connection strings unreadable.
 - Upstream describes LaWallet NWC as pre-alpha software. Do not put funds you
   cannot afford to lose behind it.
