@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="icon.png" alt="LaWallet NWC Logo" width="21%">
+  <img src="icon.svg" alt="LaWallet NWC Logo" width="21%">
 </p>
 
 # LaWallet NWC on StartOS
@@ -62,6 +62,16 @@ Two volumes, backed up by different mechanisms.
 
 The listener mounts nothing — everything it needs is in the database.
 
+**This layout is not the one the sideload package uses.** Upstream also
+publishes a StartOS package at
+[lawalletio/lawallet-startos](https://github.com/lawalletio/lawallet-startos)
+under the same `id: lawallet-nwc`, with Postgres on `main` at the `postgresql`
+subpath and no `db` volume. Because the ids match, a server carrying a
+sideloaded install and this registry is offered this listing as an ordinary
+update — which would start an empty database and leave the real cluster
+untouched on `main`. The `up` migration detects that case and refuses; pick one
+package per server and stay on it.
+
 ## File Models
 
 One model, holding six secrets and nothing else.
@@ -70,7 +80,7 @@ One model, holding six secrets and nothing else.
 | ------------ | ------ | ----------------------- | ---------- |
 | `store.json` | JSON   | Yes — `FileHelper.json` | Init       |
 
-The original four are **write-once**, generated at install and never regenerated. The NWC vault and listener request secrets are generated on install, or once on upgrade from 2.0.0:1 if they were missing:
+All six are **write-once**: generated at install, backfilled once on update if absent, and never regenerated after that.
 
 - **The database password**, which the PostgreSQL cluster was initialized with.
 - **The session signing secret**, which every issued session depends on.
