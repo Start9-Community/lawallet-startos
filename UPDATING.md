@@ -21,8 +21,19 @@ a pair — never pin them to different versions.
 
 1. Bump both `dockerTag` values in `startos/manifest/index.ts` to the new
    version (drop the leading `v` from the release tag).
-2. Set `version` in `startos/versions/current.ts` to `<new version>:0` and
+2. Set `version` in `startos/versions/current.ts` to `<new version>:1` and
    rewrite `releaseNotes` for all five locales.
+
+   The revision starts at **`:1`**, not `:0`. The sideload package at
+   [lawalletio/lawallet-startos](https://github.com/lawalletio/lawallet-startos)
+   publishes the same `id: lawallet-nwc` and takes `:0` for every version, so
+   starting here at `:1` keeps the two registries from minting the same
+   `version:revision` for different packages.
+
+   Write the notes for the person deciding whether to take the update: what
+   changed upstream and anything that behaves differently afterwards, with a
+   link to the full changelog. Packaging internals belong in the PR
+   description, not here.
 3. Check the release's changelog for new or renamed environment variables. The
    package sets its own environment in `startos/main.ts`; upstream adding a
    required variable is the one kind of bump that needs a code change. The

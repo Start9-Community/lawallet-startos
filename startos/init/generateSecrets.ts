@@ -3,12 +3,18 @@ import { generateSecret } from '../utils'
 import { storeJson } from '../fileModels/store.json'
 
 /**
- * Generate the secrets the service needs on first install. All four are
- * long-lived: the Postgres cluster is initialized with `postgresPassword`,
- * sessions are signed with `jwtSecret`, server-custodied Nostr keys are
- * encrypted under `keyVaultSecret`, and the web app authenticates the listener
- * with `listenerAuthSecret`. Regenerating any of them breaks existing data, so
- * they are written once and then only read.
+ * Write the package-managed secrets on install, and backfill on update.
+ *
+ * Every one of these is load-bearing for data already on disk: the cluster was
+ * initialized with `postgresPassword`, issued sessions are signed with
+ * `jwtSecret`, custodied Nostr keys are encrypted under `keyVaultSecret`, and
+ * RemoteWallet NWC strings under `nwcVaultSecret`. Regenerating any of them
+ * destroys access rather than rotating a credential, so they are written once
+ * and then only read.
+ *
+ * `nwcVaultSecret` is required by the listener; `listenerRequestAuthSecret` is
+ * optional upstream and kept only to keep web→listener auth separate from the
+ * webhook secret. Both are backfilled for installs that predate them.
  */
 export const generateSecrets = sdk.setupOnInit(async (effects, kind) => {
   if (kind === 'install') {
@@ -17,8 +23,18 @@ export const generateSecrets = sdk.setupOnInit(async (effects, kind) => {
       jwtSecret: generateSecret(48),
       keyVaultSecret: generateSecret(48),
       listenerAuthSecret: generateSecret(48),
+      listenerRequestAuthSecret: generateSecret(48),
+      nwcVaultSecret: generateSecret(48),
     })
-  } else {
-    await storeJson.merge(effects, {})
+    return
   }
+
+  const existing = await storeJson.read().once()
+  // `merge` diffs against what is on disk and skips a no-op write, so an
+  // already-populated store needs no guard here.
+  await storeJson.merge(effects, {
+    listenerRequestAuthSecret:
+      existing?.listenerRequestAuthSecret ?? generateSecret(48),
+    nwcVaultSecret: existing?.nwcVaultSecret ?? generateSecret(48),
+  })
 })

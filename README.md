@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="icon.png" alt="LaWallet NWC Logo" width="21%">
+  <img src="icon.svg" alt="LaWallet NWC Logo" width="21%">
 </p>
 
 # LaWallet NWC on StartOS
@@ -62,20 +62,32 @@ Two volumes, backed up by different mechanisms.
 
 The listener mounts nothing — everything it needs is in the database.
 
+**This layout is not the one the sideload package uses.** Upstream also
+publishes a StartOS package at
+[lawalletio/lawallet-startos](https://github.com/lawalletio/lawallet-startos)
+under the same `id: lawallet-nwc`, with Postgres on `main` at the `postgresql`
+subpath and no `db` volume. Because the ids match, a server carrying a
+sideloaded install and this registry is offered this listing as an ordinary
+update — which would start an empty database and leave the real cluster
+untouched on `main`. The `up` migration detects that case and refuses; pick one
+package per server and stay on it.
+
 ## File Models
 
-One model, holding four secrets and nothing else.
+One model, holding six secrets and nothing else.
 
 | File         | Format | Modelled                | Written by |
 | ------------ | ------ | ----------------------- | ---------- |
 | `store.json` | JSON   | Yes — `FileHelper.json` | Init       |
 
-All four are **write-once**, generated at install and never regenerated:
+All six are **write-once**: generated at install, backfilled once on update if absent, and never regenerated after that.
 
 - **The database password**, which the PostgreSQL cluster was initialized with.
 - **The session signing secret**, which every issued session depends on.
 - **The key vault secret**, which encrypts the custodied Nostr keys at rest.
-- **The listener secret**, which the two halves authenticate to each other with.
+- **The listener webhook secret**, which the two halves authenticate to each other with.
+- **The listener request secret**, which authenticates web→listener HTTP.
+- **The NWC vault secret**, which encrypts RemoteWallet NWC connection strings.
 
 **Regenerating any of them destroys data rather than rotating a credential** — the cluster becomes unopenable, sessions become invalid, or the custodied keys become undecryptable. So `main` fails loudly on a missing secret instead of minting a replacement, and there is deliberately no action to rotate them.
 
@@ -101,7 +113,7 @@ PostgreSQL is likewise internal, on the service's own namespace.
 
 ## Installation and First-Run Flow
 
-Install generates the four secrets. There is no task, no credential to record, and no configuration — the user creates their account in the web interface.
+Install generates the six secrets. There is no task, no credential to record, and no configuration — the user creates their account in the web interface.
 
 Start-up is ordered: PostgreSQL first, then a oneshot fixing ownership on the application's data directory, then the web application, then the listener behind it. The web application carries a generous grace period because its first start runs database migrations.
 
@@ -145,7 +157,7 @@ The dump authenticates with the database password from the store, so the two hal
 
 ## Limitations and Differences
 
-1. **The four secrets cannot be rotated.** Each is load-bearing for existing data, so there is no action for it.
+1. **The six secrets cannot be rotated.** Each is load-bearing for existing data, so there is no action for it.
 2. **The backup is equivalent to the custodied keys.** Encryption at rest protects the database file, not the backup.
 3. **No configuration surface at all** — no actions, no settings, no file models beyond the secrets.
 4. **The listener is internal.** Its API is loopback-only and authenticated with a shared secret.
@@ -170,7 +182,7 @@ volumes:
   main: /app/data # app data at a subpath; store.json at the volume root
   db: /var/lib/postgresql
 file_models:
-  - store.json # four write-once secrets
+  - store.json # six write-once secrets
 startos_managed_env_vars:
   - POSTGRES_USER
   - POSTGRES_PASSWORD
@@ -178,8 +190,10 @@ startos_managed_env_vars:
   - DATABASE_URL
   - JWT_SECRET
   - KEY_VAULT_SECRET
+  - NWC_VAULT_SECRET
   - LISTENER_URL
   - LISTENER_AUTH_SECRET
+  - LISTENER_REQUEST_AUTH_SECRET
   - LISTENER_PORT
   - WEB_ORIGIN
   - NODE_ENV
