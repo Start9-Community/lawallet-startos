@@ -12,7 +12,9 @@ export const main = sdk.setupMain(async ({ effects }) => {
     !store?.postgresPassword ||
     !store.jwtSecret ||
     !store.keyVaultSecret ||
-    !store.listenerAuthSecret
+    !store.listenerAuthSecret ||
+    !store.listenerRequestAuthSecret ||
+    !store.nwcVaultSecret
   ) {
     throw new Error('LaWallet NWC secrets are missing from store.json')
   }
@@ -110,8 +112,10 @@ export const main = sdk.setupMain(async ({ effects }) => {
           DATABASE_URL: databaseUrl,
           JWT_SECRET: store.jwtSecret,
           KEY_VAULT_SECRET: store.keyVaultSecret,
+          NWC_VAULT_SECRET: store.nwcVaultSecret,
           LISTENER_URL: `http://127.0.0.1:${listenerPort}`,
           LISTENER_AUTH_SECRET: store.listenerAuthSecret,
+          LISTENER_REQUEST_AUTH_SECRET: store.listenerRequestAuthSecret,
           NODE_ENV: 'production',
           PORT: String(uiPort),
           HOSTNAME: '0.0.0.0',
@@ -140,6 +144,8 @@ export const main = sdk.setupMain(async ({ effects }) => {
           DATABASE_URL: databaseUrl,
           LISTENER_PORT: String(listenerPort),
           LISTENER_AUTH_SECRET: store.listenerAuthSecret,
+          LISTENER_REQUEST_AUTH_SECRET: store.listenerRequestAuthSecret,
+          NWC_VAULT_SECRET: store.nwcVaultSecret,
           WEB_ORIGIN: `http://127.0.0.1:${uiPort}`,
           NODE_ENV: 'production',
         },

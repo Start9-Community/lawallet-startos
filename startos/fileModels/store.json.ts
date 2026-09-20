@@ -13,5 +13,7 @@ export const storeJson = FileHelper.json(
     jwtSecret: z.string().optional().catch(undefined),
     keyVaultSecret: z.string().optional().catch(undefined),
     listenerAuthSecret: z.string().optional().catch(undefined),
+    listenerRequestAuthSecret: z.string().optional().catch(undefined),
+    nwcVaultSecret: z.string().optional().catch(undefined),
   }),
 )

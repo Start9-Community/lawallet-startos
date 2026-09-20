@@ -14,6 +14,9 @@ const dict = {
   // interfaces.ts
   'Web UI': 8,
   'The LaWallet NWC admin dashboard and wallet': 9,
+
+  // init/refuseSideloadData.ts
+  'This install has a PostgreSQL cluster on the main volume, which means it came from the sideload package at lawalletio/lawallet-startos. This package keeps its database elsewhere, so updating in place would start an empty database and leave your data unreachable. Keep using the sideload package; its own releases update in place.': 10,
 } as const
 
 /**

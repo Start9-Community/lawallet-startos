@@ -12,6 +12,7 @@ export default {
     7: 'No se puede acceder al escucha de pagos',
     8: 'Interfaz web',
     9: 'El panel de administración y el monedero de LaWallet NWC',
+    10: 'Esta instalación tiene un clúster de PostgreSQL en el volumen main, lo que significa que proviene del paquete de carga lateral en lawalletio/lawallet-startos. Este paquete guarda su base de datos en otro lugar, así que actualizar en el sitio iniciaría una base de datos vacía y dejaría tus datos inaccesibles. Sigue usando el paquete de carga lateral; sus propias versiones se actualizan en el sitio.',
   },
   de_DE: {
     0: 'PostgreSQL ist bereit',
@@ -24,6 +25,7 @@ export default {
     7: 'Der Zahlungslauscher ist nicht erreichbar',
     8: 'Weboberfläche',
     9: 'Das Admin-Dashboard und die Wallet von LaWallet NWC',
+    10: 'Diese Installation hat einen PostgreSQL-Cluster auf dem Volume main, sie stammt also aus dem Sideload-Paket unter lawalletio/lawallet-startos. Dieses Paket legt seine Datenbank woanders ab, daher würde ein Update an Ort und Stelle eine leere Datenbank starten und deine Daten unerreichbar machen. Bleib beim Sideload-Paket; seine eigenen Releases aktualisieren an Ort und Stelle.',
   },
   pl_PL: {
     0: 'PostgreSQL jest gotowy',
@@ -36,6 +38,7 @@ export default {
     7: 'Nasłuch płatności jest nieosiągalny',
     8: 'Interfejs webowy',
     9: 'Panel administracyjny i portfel LaWallet NWC',
+    10: 'Ta instalacja ma klaster PostgreSQL na wolumenie main, co oznacza, że pochodzi z pakietu sideload z lawalletio/lawallet-startos. Ten pakiet trzyma bazę danych gdzie indziej, więc aktualizacja w miejscu uruchomiłaby pustą bazę i pozostawiła Twoje dane niedostępne. Korzystaj dalej z pakietu sideload; jego własne wydania aktualizują się w miejscu.',
   },
   fr_FR: {
     0: 'PostgreSQL est prêt',
@@ -48,5 +51,6 @@ export default {
     7: 'L’écouteur de paiements est injoignable',
     8: 'Interface web',
     9: 'Le tableau de bord d’administration et le portefeuille LaWallet NWC',
+    10: "Cette installation possède un cluster PostgreSQL sur le volume main, ce qui signifie qu'elle provient du paquet en chargement latéral de lawalletio/lawallet-startos. Ce paquet conserve sa base de données ailleurs : une mise à jour sur place démarrerait une base vide et rendrait vos données inaccessibles. Continuez avec le paquet en chargement latéral ; ses propres versions se mettent à jour sur place.",
   },
 } satisfies Record<string, LangDict>
