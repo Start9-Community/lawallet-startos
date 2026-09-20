@@ -33,8 +33,7 @@ straight away, before exposing the service to anyone else.
 4. Create lightning addresses under **Addresses**, and connect a wallet under
    **Remote Wallets** to receive payments. Configure the NIP-57 receipt signer
    `nsec` in **Settings → NWC Services** if you want zap receipts; it is
-   encrypted with the generated NWC vault key and is not a StartOS
-   environment variable.
+   encrypted with the generated NWC vault key.
 
 ## Using LaWallet NWC
 

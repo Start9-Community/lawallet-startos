@@ -69,8 +69,9 @@ under the same `id: lawallet-nwc`, with Postgres on `main` at the `postgresql`
 subpath and no `db` volume. Because the ids match, a server carrying a
 sideloaded install and this registry is offered this listing as an ordinary
 update — which would start an empty database and leave the real cluster
-untouched on `main`. The `up` migration detects that case and refuses; pick one
-package per server and stay on it.
+untouched on `main`. Init refuses any update that finds a cluster under
+`main/postgresql/data`, and StartOS rolls the package back; pick one package per
+server and stay on it.
 
 ## File Models
 

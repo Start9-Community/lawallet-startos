@@ -34,6 +34,7 @@ a pair — never pin them to different versions.
    changed upstream and anything that behaves differently afterwards, with a
    link to the full changelog. Packaging internals belong in the PR
    description, not here.
+
 3. Check the release's changelog for new or renamed environment variables. The
    package sets its own environment in `startos/main.ts`; upstream adding a
    required variable is the one kind of bump that needs a code change. The

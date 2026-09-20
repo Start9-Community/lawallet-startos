@@ -6,11 +6,6 @@ import { listenerPort, pgDatabase, pgPort, pgUser, uiPort } from './utils'
 export const main = sdk.setupMain(async ({ effects }) => {
   /**
    * ======================== Setup ========================
-   *
-   * listenerRequestAuthSecret is absent from this list on purpose: upstream
-   * marks it `.optional()` in both apps and documents a fallback to
-   * LISTENER_AUTH_SECRET, so a store.json restored from a backup taken before
-   * it existed must still boot.
    */
   const store = await storeJson.read().const(effects)
   if (
@@ -18,16 +13,11 @@ export const main = sdk.setupMain(async ({ effects }) => {
     !store.jwtSecret ||
     !store.keyVaultSecret ||
     !store.listenerAuthSecret ||
+    !store.listenerRequestAuthSecret ||
     !store.nwcVaultSecret
   ) {
     throw new Error('LaWallet NWC secrets are missing from store.json')
   }
-
-  // Omit the key when unset so the app applies its documented fallback; an
-  // empty string would fail its min(32) validation instead.
-  const requestAuthEnv = store.listenerRequestAuthSecret
-    ? { LISTENER_REQUEST_AUTH_SECRET: store.listenerRequestAuthSecret }
-    : {}
 
   const databaseUrl = `postgresql://${pgUser}:${store.postgresPassword}@127.0.0.1:${pgPort}/${pgDatabase}`
 
@@ -125,7 +115,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
           NWC_VAULT_SECRET: store.nwcVaultSecret,
           LISTENER_URL: `http://127.0.0.1:${listenerPort}`,
           LISTENER_AUTH_SECRET: store.listenerAuthSecret,
-          ...requestAuthEnv,
+          LISTENER_REQUEST_AUTH_SECRET: store.listenerRequestAuthSecret,
           NODE_ENV: 'production',
           PORT: String(uiPort),
           HOSTNAME: '0.0.0.0',
@@ -154,7 +144,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
           DATABASE_URL: databaseUrl,
           LISTENER_PORT: String(listenerPort),
           LISTENER_AUTH_SECRET: store.listenerAuthSecret,
-          ...requestAuthEnv,
+          LISTENER_REQUEST_AUTH_SECRET: store.listenerRequestAuthSecret,
           NWC_VAULT_SECRET: store.nwcVaultSecret,
           WEB_ORIGIN: `http://127.0.0.1:${uiPort}`,
           NODE_ENV: 'production',
