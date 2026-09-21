@@ -6,21 +6,32 @@ import { listenerPort, pgDatabase, pgPort, pgUser, uiPort } from './utils'
 export const main = sdk.setupMain(async ({ effects }) => {
   /**
    * ======================== Setup ========================
+   *
+   * Secrets are written on install (and missing NWC/listener keys on
+   * update/restore) by init/generateSecrets.ts. A missing store.json or
+   * Postgres/JWT secret is a hard error — regenerating them would mint a
+   * new database password against an already-initialized cluster.
    */
-  const store = await storeJson.read().const(effects)
+  const secrets = await storeJson.read().const(effects)
   if (
-    !store?.postgresPassword ||
-    !store.jwtSecret ||
-    !store.keyVaultSecret ||
-    !store.listenerAuthSecret
+    !secrets?.postgresPassword ||
+    !secrets.jwtSecret ||
+    !secrets.keyVaultSecret ||
+    !secrets.listenerAuthSecret ||
+    !secrets.listenerRequestAuthSecret ||
+    !secrets.nwcVaultSecret
   ) {
     throw new Error('LaWallet NWC secrets are missing from store.json')
   }
 
-  const databaseUrl = `postgresql://${pgUser}:${store.postgresPassword}@127.0.0.1:${pgPort}/${pgDatabase}`
+  const databaseUrl = `postgresql://${pgUser}:${secrets.postgresPassword}@127.0.0.1:${pgPort}/${pgDatabase}`
 
   /**
    * ======================== Subcontainers ========================
+   *
+   * Postgres lives on the `db` volume (`db/data`). Sideload 2.7.0:0 clusters
+   * on `main/postgresql/data` are moved there once by
+   * init/migrateSideloadPgdata.ts before these daemons start.
    */
   const postgres = sdk.SubContainer.of(
     effects,
@@ -69,7 +80,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
         env: {
           POSTGRES_USER: pgUser,
           POSTGRES_DB: pgDatabase,
-          POSTGRES_PASSWORD: store.postgresPassword,
+          POSTGRES_PASSWORD: secrets.postgresPassword,
         },
       },
       ready: {
@@ -108,10 +119,12 @@ export const main = sdk.setupMain(async ({ effects }) => {
         command: sdk.useEntrypoint(),
         env: {
           DATABASE_URL: databaseUrl,
-          JWT_SECRET: store.jwtSecret,
-          KEY_VAULT_SECRET: store.keyVaultSecret,
+          JWT_SECRET: secrets.jwtSecret,
+          KEY_VAULT_SECRET: secrets.keyVaultSecret,
+          NWC_VAULT_SECRET: secrets.nwcVaultSecret,
           LISTENER_URL: `http://127.0.0.1:${listenerPort}`,
-          LISTENER_AUTH_SECRET: store.listenerAuthSecret,
+          LISTENER_AUTH_SECRET: secrets.listenerAuthSecret,
+          LISTENER_REQUEST_AUTH_SECRET: secrets.listenerRequestAuthSecret,
           NODE_ENV: 'production',
           PORT: String(uiPort),
           HOSTNAME: '0.0.0.0',
@@ -139,8 +152,11 @@ export const main = sdk.setupMain(async ({ effects }) => {
         env: {
           DATABASE_URL: databaseUrl,
           LISTENER_PORT: String(listenerPort),
-          LISTENER_AUTH_SECRET: store.listenerAuthSecret,
+          LISTENER_AUTH_SECRET: secrets.listenerAuthSecret,
+          LISTENER_REQUEST_AUTH_SECRET: secrets.listenerRequestAuthSecret,
+          NWC_VAULT_SECRET: secrets.nwcVaultSecret,
           WEB_ORIGIN: `http://127.0.0.1:${uiPort}`,
+          PROXY_RECONCILE_INTERVAL_MS: '600000',
           NODE_ENV: 'production',
         },
       },
