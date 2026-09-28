@@ -8,7 +8,7 @@ export const current = VersionInfo.of({
     en_US: `Updates LaWallet NWC from 2.0.0 to 2.7.1.
 
 Heads up:
-- A backup made before this version cannot be restored into it. Take a new backup after updating.
+- If you installed LaWallet by sideload, a backup made by the sideloaded package cannot be restored into this version. Take a new backup after updating.
 - The DEFAULT_NWC address mode was removed in 2.3.0. An address now names its wallet explicitly instead of inheriting whichever wallet your primary address pointed at. Check that each address is bound to the wallet you expect after updating.
 - The Alby Hub sub-account integration is removed, and its settings are deleted on update. The legacy "subdomain" setting is folded into "domain"; a blank public endpoint now defaults to https://<domain>.
 
@@ -43,7 +43,7 @@ Full release notes: ${CHANGELOG}`,
     es_ES: `Actualiza LaWallet NWC de 2.0.0 a 2.7.1.
 
 Atención:
-- Una copia de seguridad hecha antes de esta versión no se puede restaurar en ella. Haz una nueva copia después de actualizar.
+- Si instalaste LaWallet por sideload, una copia de seguridad hecha por el paquete instalado por sideload no se puede restaurar en esta versión. Haz una nueva copia después de actualizar.
 - El modo de dirección DEFAULT_NWC se eliminó en 2.3.0. Ahora cada dirección indica explícitamente su monedero en lugar de heredar el de la dirección principal. Comprueba que cada dirección quede vinculada al monedero que esperas después de actualizar.
 - Se elimina la integración de subcuentas de Alby Hub y sus ajustes se borran al actualizar. El ajuste heredado "subdomain" se integra en "domain"; un endpoint público vacío ahora toma por defecto https://<domain>.
 
@@ -78,7 +78,7 @@ Notas de la versión completas: ${CHANGELOG}`,
     de_DE: `Aktualisiert LaWallet NWC von 2.0.0 auf 2.7.1.
 
 Achtung:
-- Eine Sicherung, die vor dieser Version erstellt wurde, lässt sich nicht darin wiederherstellen. Erstelle nach dem Update eine neue Sicherung.
+- Wenn du LaWallet per Sideload installiert hast, lässt sich eine Sicherung des per Sideload installierten Pakets nicht in dieser Version wiederherstellen. Erstelle nach dem Update eine neue Sicherung.
 - Der Adressmodus DEFAULT_NWC wurde in 2.3.0 entfernt. Eine Adresse benennt ihre Wallet jetzt ausdrücklich, statt die der primären Adresse zu übernehmen. Prüfe nach dem Update, ob jede Adresse mit der erwarteten Wallet verknüpft ist.
 - Die Alby-Hub-Unterkonto-Integration wurde entfernt, ihre Einstellungen werden beim Update gelöscht. Die veraltete Einstellung „subdomain“ geht in „domain“ auf; ein leerer öffentlicher Endpunkt lautet jetzt standardmäßig https://<domain>.
 
@@ -113,7 +113,7 @@ Vollständige Versionshinweise: ${CHANGELOG}`,
     pl_PL: `Aktualizuje LaWallet NWC z 2.0.0 do 2.7.1.
 
 Uwaga:
-- Kopia zapasowa zrobiona przed tą wersją nie da się przywrócić do niej. Po aktualizacji zrób nową kopię.
+- Jeśli LaWallet został zainstalowany przez sideload, kopii zapasowej wykonanej przez pakiet z sideloadu nie da się przywrócić w tej wersji. Po aktualizacji zrób nową kopię.
 - Tryb adresu DEFAULT_NWC został usunięty w 2.3.0. Adres wskazuje teraz swój portfel wprost, zamiast dziedziczyć portfel adresu głównego. Po aktualizacji sprawdź, czy każdy adres jest powiązany z oczekiwanym portfelem.
 - Integracja subkont Alby Hub została usunięta, a jej ustawienia są kasowane przy aktualizacji. Stare ustawienie „subdomain” zostaje scalone z „domain”; pusty publiczny endpoint domyślnie przyjmuje teraz https://<domain>.
 
@@ -148,7 +148,7 @@ Pełne informacje o wydaniach: ${CHANGELOG}`,
     fr_FR: `Met à jour LaWallet NWC de 2.0.0 vers 2.7.1.
 
 Attention :
-- Une sauvegarde faite avant cette version ne peut pas y être restaurée. Faites une nouvelle sauvegarde après la mise à jour.
+- Si vous avez installé LaWallet par sideload, une sauvegarde faite par le paquet installé par sideload ne peut pas être restaurée dans cette version. Faites une nouvelle sauvegarde après la mise à jour.
 - Le mode d'adresse DEFAULT_NWC a été supprimé en 2.3.0. Une adresse désigne désormais explicitement son portefeuille au lieu d'hériter de celui de l'adresse principale. Après la mise à jour, vérifiez que chaque adresse est liée au portefeuille attendu.
 - L'intégration des sous-comptes Alby Hub est supprimée et ses réglages sont effacés à la mise à jour. L'ancien réglage « subdomain » est fusionné dans « domain » ; un point de terminaison public vide vaut désormais https://<domain> par défaut.
 
