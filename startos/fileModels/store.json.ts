@@ -9,9 +9,13 @@ import { sdk } from '../sdk'
 export const storeJson = FileHelper.json(
   { base: sdk.volumes.main, subpath: 'store.json' },
   z.object({
-    postgresPassword: z.string().optional().catch(undefined),
-    jwtSecret: z.string().optional().catch(undefined),
-    keyVaultSecret: z.string().optional().catch(undefined),
-    listenerAuthSecret: z.string().optional().catch(undefined),
+    jwtSecret: z.string(),
+    postgresPassword: z.string(),
+    // Optional so backups created before the listener was bundled still load.
+    // generateSecrets backfills any missing value on update/restore.
+    keyVaultSecret: z.string().optional(),
+    listenerAuthSecret: z.string().optional(),
+    listenerRequestAuthSecret: z.string().optional(),
+    nwcVaultSecret: z.string().optional(),
   }),
 )

@@ -4,24 +4,20 @@ import { storeJson } from './fileModels/store.json'
 import { listenerPort, pgDatabase, pgPort, pgUser, uiPort } from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
-  /**
-   * ======================== Setup ========================
-   */
-  const store = await storeJson.read().const(effects)
+  const secrets = await storeJson.read().const(effects)
   if (
-    !store?.postgresPassword ||
-    !store.jwtSecret ||
-    !store.keyVaultSecret ||
-    !store.listenerAuthSecret
+    !secrets?.postgresPassword ||
+    !secrets.jwtSecret ||
+    !secrets.keyVaultSecret ||
+    !secrets.listenerAuthSecret ||
+    !secrets.listenerRequestAuthSecret ||
+    !secrets.nwcVaultSecret
   ) {
     throw new Error('LaWallet NWC secrets are missing from store.json')
   }
 
-  const databaseUrl = `postgresql://${pgUser}:${store.postgresPassword}@127.0.0.1:${pgPort}/${pgDatabase}`
+  const databaseUrl = `postgresql://${pgUser}:${secrets.postgresPassword}@127.0.0.1:${pgPort}/${pgDatabase}`
 
-  /**
-   * ======================== Subcontainers ========================
-   */
   const postgres = sdk.SubContainer.of(
     effects,
     { imageId: 'postgres' },
@@ -53,14 +49,6 @@ export const main = sdk.setupMain(async ({ effects }) => {
     'listener-sub',
   )
 
-  /**
-   * ======================== Daemons ========================
-   *
-   * Postgres comes up first on loopback only. The web app then runs the
-   * image's `prisma migrate deploy && node server.js`, which owns the schema
-   * both it and the listener read. The listener waits for that migration to
-   * land before opening its relay connections.
-   */
   return sdk.Daemons.of(effects)
     .addDaemon('postgres', {
       subcontainer: postgres,
@@ -69,7 +57,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
         env: {
           POSTGRES_USER: pgUser,
           POSTGRES_DB: pgDatabase,
-          POSTGRES_PASSWORD: store.postgresPassword,
+          POSTGRES_PASSWORD: secrets.postgresPassword,
         },
       },
       ready: {
@@ -108,10 +96,12 @@ export const main = sdk.setupMain(async ({ effects }) => {
         command: sdk.useEntrypoint(),
         env: {
           DATABASE_URL: databaseUrl,
-          JWT_SECRET: store.jwtSecret,
-          KEY_VAULT_SECRET: store.keyVaultSecret,
+          JWT_SECRET: secrets.jwtSecret,
+          KEY_VAULT_SECRET: secrets.keyVaultSecret,
+          NWC_VAULT_SECRET: secrets.nwcVaultSecret,
           LISTENER_URL: `http://127.0.0.1:${listenerPort}`,
-          LISTENER_AUTH_SECRET: store.listenerAuthSecret,
+          LISTENER_AUTH_SECRET: secrets.listenerAuthSecret,
+          LISTENER_REQUEST_AUTH_SECRET: secrets.listenerRequestAuthSecret,
           NODE_ENV: 'production',
           PORT: String(uiPort),
           HOSTNAME: '0.0.0.0',
@@ -139,7 +129,9 @@ export const main = sdk.setupMain(async ({ effects }) => {
         env: {
           DATABASE_URL: databaseUrl,
           LISTENER_PORT: String(listenerPort),
-          LISTENER_AUTH_SECRET: store.listenerAuthSecret,
+          LISTENER_AUTH_SECRET: secrets.listenerAuthSecret,
+          LISTENER_REQUEST_AUTH_SECRET: secrets.listenerRequestAuthSecret,
+          NWC_VAULT_SECRET: secrets.nwcVaultSecret,
           WEB_ORIGIN: `http://127.0.0.1:${uiPort}`,
           NODE_ENV: 'production',
         },

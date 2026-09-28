@@ -3,8 +3,7 @@ import { utils } from '@start9labs/start-sdk'
 
 /** Port the LaWallet NWC web server listens on (baked into the image). */
 export const uiPort = 2288
-
-/** Port the NWC payment listener serves its private HTTP API on. */
+/** Private NWC listener port inside the package network namespace. */
 export const listenerPort = 4100
 
 /**
@@ -17,7 +16,7 @@ export const pgPort = 5432
 
 /**
  * `charset` is a comma-separated list of ranges — `'a-zA-Z0-9'` is a parse
- * error, not a three-range set.
+ * error on start-sdk 2.0, not a three-range set.
  */
 export const generateSecret = (len: number): string =>
   utils.getDefaultString({ charset: 'a-z,A-Z,0-9', len })

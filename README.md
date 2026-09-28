@@ -14,6 +14,8 @@
 - **Upstream repo:** <https://github.com/lawalletio/lawallet-nwc>
 - **Wrapper repo:** <https://github.com/Start9-Community/lawallet-startos>
 
+The Community listing and the sideload package share this package id and the same volumes, so an install from either channel can update to the other in place. Identical trees share a revision; if this tree has drifted from the sideload tag, this listing takes the next revision.
+
 ---
 
 ## Table of Contents
@@ -55,27 +57,31 @@ Three images: two upstream halves of the application, and a PostgreSQL sidecar.
 
 Two volumes, backed up by different mechanisms.
 
-| Volume | Mount Point           | Purpose                                     |
-| ------ | --------------------- | ------------------------------------------- |
-| `main` | `/app/data` (subpath) | Application data, and the store at the root |
-| `db`   | `/var/lib/postgresql` | The PostgreSQL data directory               |
+| Volume | Mount Point           | Purpose                                              |
+| ------ | --------------------- | ---------------------------------------------------- |
+| `main` | `/app/data` (subpath) | Application data, and the store at the root          |
+| `db`   | `/var/lib/postgresql` | The PostgreSQL data directory (`data` is the cluster) |
 
 The listener mounts nothing — everything it needs is in the database.
 
+Older sideload installs kept the PostgreSQL cluster on the main volume. On update it is moved onto `db` once; a later start never sees the old path.
+
 ## File Models
 
-One model, holding four secrets and nothing else.
+One model, holding six secrets and nothing else.
 
 | File         | Format | Modelled                | Written by |
 | ------------ | ------ | ----------------------- | ---------- |
 | `store.json` | JSON   | Yes — `FileHelper.json` | Init       |
 
-All four are **write-once**, generated at install and never regenerated:
+All six are **write-once**, generated at install and never regenerated:
 
 - **The database password**, which the PostgreSQL cluster was initialized with.
 - **The session signing secret**, which every issued session depends on.
 - **The key vault secret**, which encrypts the custodied Nostr keys at rest.
-- **The listener secret**, which the two halves authenticate to each other with.
+- **The listener webhook secret**, which authenticates listener-to-web callbacks.
+- **The listener request secret**, which authenticates web-to-listener calls.
+- **The NWC vault secret**, which encrypts RemoteWallet and proxy NWC data.
 
 **Regenerating any of them destroys data rather than rotating a credential** — the cluster becomes unopenable, sessions become invalid, or the custodied keys become undecryptable. So `main` fails loudly on a missing secret instead of minting a replacement, and there is deliberately no action to rotate them.
 
@@ -101,7 +107,7 @@ PostgreSQL is likewise internal, on the service's own namespace.
 
 ## Installation and First-Run Flow
 
-Install generates the four secrets. There is no task, no credential to record, and no configuration — the user creates their account in the web interface.
+Install generates the six secrets. There is no task, no credential to record, and no configuration — the user creates their account in the web interface.
 
 Start-up is ordered: PostgreSQL first, then a oneshot fixing ownership on the application's data directory, then the web application, then the listener behind it. The web application carries a generous grace period because its first start runs database migrations.
 
@@ -137,7 +143,9 @@ A service restarting with no failing check displayed is the database; the servic
 
 **The database is dumped; the application volume is copied.**
 
-An rsync of a live PostgreSQL data directory is not crash-consistent, so the database is captured as a logical dump instead — which also survives a future PostgreSQL image bump rather than being tied to the on-disk format it was taken with. **The `db` volume's files are never captured**; a restore starts the engine and replays the dump into it.
+An rsync of a live PostgreSQL data directory is not crash-consistent, so the database is captured as a logical dump instead — which also survives a future PostgreSQL image bump rather than being tied to the on-disk format it was taken with. **The `db` volume's files are never captured**; a restore starts the engine and replays the dump into it. A volume that is dumped is not a volume that is backed up.
+
+**A backup made before this package's dump-based backups cannot be restored into it.** Take a new backup after updating.
 
 **The backup contains the custodied Nostr keys, in recoverable form.** They are encrypted in the database, and the key that decrypts them is in the store on the other volume, and the backup holds both. That is what makes a restore work, and what makes the backup as sensitive as the keys.
 
@@ -145,7 +153,7 @@ The dump authenticates with the database password from the store, so the two hal
 
 ## Limitations and Differences
 
-1. **The four secrets cannot be rotated.** Each is load-bearing for existing data, so there is no action for it.
+1. **These secrets cannot be rotated.** Each is load-bearing for existing data, so there is no action for it.
 2. **The backup is equivalent to the custodied keys.** Encryption at rest protects the database file, not the backup.
 3. **No configuration surface at all** — no actions, no settings, no file models beyond the secrets.
 4. **The listener is internal.** Its API is loopback-only and authenticated with a shared secret.
@@ -168,9 +176,9 @@ subcontainers:
   - postgres-sub
 volumes:
   main: /app/data # app data at a subpath; store.json at the volume root
-  db: /var/lib/postgresql
+  db: /var/lib/postgresql # cluster at data/
 file_models:
-  - store.json # four write-once secrets
+  - store.json # six write-once secrets
 startos_managed_env_vars:
   - POSTGRES_USER
   - POSTGRES_PASSWORD
@@ -178,8 +186,10 @@ startos_managed_env_vars:
   - DATABASE_URL
   - JWT_SECRET
   - KEY_VAULT_SECRET
+  - NWC_VAULT_SECRET
   - LISTENER_URL
   - LISTENER_AUTH_SECRET
+  - LISTENER_REQUEST_AUTH_SECRET
   - LISTENER_PORT
   - WEB_ORIGIN
   - NODE_ENV

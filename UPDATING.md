@@ -1,31 +1,36 @@
-# Updating the upstream version
+# Updating
 
-This package wraps [lawalletio/lawallet-nwc](https://github.com/lawalletio/lawallet-nwc),
-which publishes two multi-arch images per release: `masize/lawallet-nwc`
-(the web app) and `masize/lawallet-nwc-listener` (the NWC payment listener).
-They are built and tagged together by the same workflow, so they always move as
-a pair — never pin them to different versions.
+This is the **Community-registry** package. Registry builds are made from
+`Start9-Community/lawallet-startos` only. Sideload `.s9pk` files are published
+from [`lawalletio/lawallet-startos`](https://github.com/lawalletio/lawallet-startos).
 
-## Determining the upstream version
+Do not pull or rebase this repo against lawalletio. Bumps arrive as pull
+requests that overlay the sideload package tree onto this `master` while
+leaving `.github/workflows` (Community build, S3 release, sync-next) untouched.
 
-- **lawallet-nwc** ([lawalletio/lawallet-nwc](https://github.com/lawalletio/lawallet-nwc)) — fetch the latest release tag:
+Identical trees share a revision. If this listing has drifted from the sideload
+tag — a review fix that has not landed upstream yet, or a Community-only
+change — this listing takes the next revision.
 
-  ```sh
-  gh release view -R lawalletio/lawallet-nwc --json tagName -q .tagName
-  ```
+## How bumps arrive
 
-  The current pins live in `startos/manifest/index.ts` at
-  `images.web.source.dockerTag` and `images.listener.source.dockerTag`.
+After each `lawallet-nwc` image publish, lawalletio's Release workflow:
 
-## Applying the bump
+1. Bumps and publishes the sideload `.s9pk` on lawalletio.
+2. Opens or updates a PR against this repo with `startos/`, `instructions.md`,
+   image tags, and version notes. While a PR here already has requested
+   changes, the next bump is pushed to that branch instead of opening a sibling.
 
-1. Bump both `dockerTag` values in `startos/manifest/index.ts` to the new
-   version (drop the leading `v` from the release tag).
-2. Set `version` in `startos/versions/current.ts` to `<new version>:0` and
-   rewrite `releaseNotes` for all five locales.
-3. Check the release's changelog for new or renamed environment variables. The
-   package sets its own environment in `startos/main.ts`; upstream adding a
-   required variable is the one kind of bump that needs a code change. The
-   authoritative lists are `apps/web/lib/config/env.ts` and
-   `apps/listener/src/env.ts`, and `docker-compose.hub.yml` shows what a
-   published-image deployment is expected to set.
+Review the PR here, then merge. A push to `master` runs `tagAndRelease.yml`,
+which tags and deploys to community-beta.
+
+## Manual overlay (if the bot PR is late)
+
+From a clone of this repo, with a checkout of lawalletio alongside:
+
+```sh
+../lawallet-startos/scripts/overlay-community.sh ../lawallet-startos .
+```
+
+Leave `.github/` and `AGENTS.md` as they are in this repository. Open a PR
+against `master`.
