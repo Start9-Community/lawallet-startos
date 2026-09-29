@@ -12,6 +12,14 @@ if [ ! -d "$src/startos" ] || [ ! -d "$dst/.github" ]; then
 fi
 
 rsync -a --delete "$src/startos/" "$dst/startos/"
+# Registry releases are tagged on the Community repo, and promotion checks them through packageRepo.
+manifest="$dst/startos/manifest/index.ts"
+sed "s#packageRepo: 'https://github.com/lawalletio/lawallet-startos'#packageRepo: 'https://github.com/Start9-Community/lawallet-startos'#" "$manifest" > "$manifest.tmp"
+mv "$manifest.tmp" "$manifest"
+grep -q "packageRepo: 'https://github.com/Start9-Community/lawallet-startos'" "$manifest" || {
+  echo "overlay-community.sh: could not set packageRepo in $manifest" >&2
+  exit 1
+}
 rsync -a --delete "$src/assets/" "$dst/assets/"
 
 cp "$src/instructions.md" "$dst/instructions.md"
