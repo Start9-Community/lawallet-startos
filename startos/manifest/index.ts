@@ -5,7 +5,7 @@ export const manifest = setupManifest({
   id: 'lawallet-nwc',
   title: 'LaWallet NWC',
   license: 'MIT',
-  packageRepo: 'https://github.com/lawalletio/lawallet-startos',
+  packageRepo: 'https://github.com/Start9-Community/lawallet-startos',
   upstreamRepo: 'https://github.com/lawalletio/lawallet-nwc',
   marketingUrl: 'https://lawallet.io',
   donationUrl: null,
