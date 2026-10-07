@@ -3,7 +3,7 @@ import { IMPOSSIBLE, VersionInfo } from '@start9labs/start-sdk'
 const CHANGELOG = 'https://github.com/lawalletio/lawallet-nwc/releases'
 
 export const current = VersionInfo.of({
-  version: '2.7.1:1',
+  version: '2.7.1:2',
   releaseNotes: {
     en_US: `Updates LaWallet NWC from 2.0.0 to 2.7.1.
 
@@ -39,7 +39,9 @@ Heads up:
 - Webhook delivery times out DNS lookups and no longer overlaps inline retries
 - Stale RECEIVE mode no longer blocks card spends permanently
 
-Full release notes: ${CHANGELOG}`,
+Full release notes: ${CHANGELOG}
+
+StartOS package improvements.`,
     es_ES: `Actualiza LaWallet NWC de 2.0.0 a 2.7.1.
 
 Atención:
@@ -74,7 +76,9 @@ Atención:
 - La entrega de webhooks aplica tiempo de espera a las consultas DNS y ya no se solapa con los reintentos en línea
 - Un modo RECEIVE obsoleto ya no bloquea permanentemente los gastos con tarjeta
 
-Notas de la versión completas: ${CHANGELOG}`,
+Notas de la versión completas: ${CHANGELOG}
+
+Mejoras en el paquete de StartOS.`,
     de_DE: `Aktualisiert LaWallet NWC von 2.0.0 auf 2.7.1.
 
 Achtung:
@@ -109,7 +113,9 @@ Achtung:
 - Die Webhook-Zustellung begrenzt DNS-Abfragen zeitlich und überschneidet sich nicht mehr mit Inline-Wiederholungen
 - Ein veralteter RECEIVE-Modus blockiert Kartenzahlungen nicht mehr dauerhaft
 
-Vollständige Versionshinweise: ${CHANGELOG}`,
+Vollständige Versionshinweise: ${CHANGELOG}
+
+Verbesserungen am StartOS-Paket.`,
     pl_PL: `Aktualizuje LaWallet NWC z 2.0.0 do 2.7.1.
 
 Uwaga:
@@ -144,7 +150,9 @@ Uwaga:
 - Dostarczanie webhooków ma limit czasu na zapytania DNS i nie nakłada się już na ponowienia inline
 - Nieaktualny tryb RECEIVE nie blokuje już na stałe płatności kartą
 
-Pełne informacje o wydaniach: ${CHANGELOG}`,
+Pełne informacje o wydaniach: ${CHANGELOG}
+
+Ulepszenia pakietu StartOS.`,
     fr_FR: `Met à jour LaWallet NWC de 2.0.0 vers 2.7.1.
 
 Attention :
@@ -179,7 +187,9 @@ Attention :
 - La livraison des webhooks limite la durée des résolutions DNS et ne chevauche plus les nouvelles tentatives en ligne
 - Un mode RECEIVE obsolète ne bloque plus définitivement les dépenses par carte
 
-Notes de version complètes : ${CHANGELOG}`,
+Notes de version complètes : ${CHANGELOG}
+
+Améliorations du paquet StartOS.`,
   },
   migrations: {
     up: async ({ effects }) => {},

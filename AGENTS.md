@@ -18,13 +18,21 @@ Freshly scaffolded? Work the
 guide page, not a file in this repo — read it, don't copy it in.
 
 Keep `README.md` (technical reference for an AI support or administering agent) and
-`instructions.md` (end-user docs) in sync with your changes.
+`instructions.md` (end-user docs) in sync with your changes. This file restates neither:
+whoever changes the package has both, so it carries only what they don't — repo mechanics,
+a change that looks right and is not, where the next thing gets added, a naming trap, a
+build or test invocation particular to this repo.
 
-**Bugs and feature requests are GitHub issues on this repo** — file them as you find them.
+**Fix a defect you spot rather than reporting it** — you have the package open and the
+context to be sure. File **a GitHub issue on this repo** only when the call isn't yours to
+make: you can't pin the cause down, two defensible fixes exist, or it's too large to ride on
+the work in hand. An open issue is a report, not a queue — implement one when you're asked
+to or when it's labelled `Approved`, then close it with `Closes #<n>`.
+
 Don't record work in the repo instead: no `TODO.md`, no `NOTES.md`, no `PLAN.md`. What you
 verified, tried, and decided belongs in the commit message and the PR body.
 
 ## This repo
 
-- **Secret charsets are comma-separated ranges.** `utils.getDefaultString({ charset: 'a-zA-Z0-9' })` throws at runtime; the grammar wants `'a-z,A-Z,0-9'`. This is a `tsc`-invisible failure that previously made the package impossible to install.
-- **The listener's port stays unexported.** It is loopback-only and authenticated with the shared secret; exporting it would publish a second authenticated path into the wallet.
+- **Write secret charsets as comma-separated ranges** (`'a-z,A-Z,0-9'`): `utils.getDefaultString({ charset: 'a-zA-Z0-9' })` type-checks and throws at runtime.
+- **Don't export the listener's port** — it would publish a second authenticated path into the wallet.
