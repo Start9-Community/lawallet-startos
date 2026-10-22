@@ -37,7 +37,7 @@ The Community listing and the sideload package share this package id and the sam
 
 ## Image and Container Runtime
 
-Three images: two upstream halves of the application, and a PostgreSQL sidecar.
+Three images: two upstream halves of the application, and a PostgreSQL sidecar. Both application images are built through the root `Dockerfile`, a temporary layer that installs the system CA bundle and sets `NODE_OPTIONS=--use-openssl-ca`; it comes out once upstream ships images built on a fixed store.
 
 | Property      | Value                                                             |
 | ------------- | ----------------------------------------------------------------- |
