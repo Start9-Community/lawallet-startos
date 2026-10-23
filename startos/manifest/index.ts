@@ -13,22 +13,11 @@ export const manifest = setupManifest({
   volumes: ['main', 'db'],
   images: {
     web: {
-      source: {
-        dockerBuild: {
-          buildArgs: { IMAGE: 'masize/lawallet-nwc:2.8.0', RUNAS: 'nextjs' },
-        },
-      },
+      source: { dockerTag: 'masize/lawallet-nwc:2.9.0' },
       arch: ['x86_64', 'aarch64'],
     },
     listener: {
-      source: {
-        dockerBuild: {
-          buildArgs: {
-            IMAGE: 'masize/lawallet-nwc-listener:2.8.0',
-            RUNAS: 'listener',
-          },
-        },
-      },
+      source: { dockerTag: 'masize/lawallet-nwc-listener:2.9.0' },
       arch: ['x86_64', 'aarch64'],
     },
     postgres: {
